@@ -47,7 +47,24 @@ def build_animation_categories(menu, pet, *, icons,
 - `close_on_trigger` 不是参数，是函数体内第一行赋值的局部变量
 - 写成 6 个普通位置参数会导致调用方绑定失败 → 菜单构建错位 → Qt/shiboken 层 `0xC0000005` 崩溃
 
-### 2. 物理开关（改配置，不动字节码）
+### 2. 右键「AI 对话」→ 改名「快速对话」，开小气泡而不是完整聊天窗（改字节码）
+
+**原版**：右键菜单「AI 对话」直接 `PetInstance.open_chat`，弹一个 900×600 级的完整聊天窗。
+
+**改后**：菜单项改名「快速对话」，点开的是锚定在鱼头顶的 `QuickChatBubble`（320×162，带输入框 + 发送按钮），回车即发，回复也在气泡里滚动，不弹大窗。
+
+改的是 `pet/context_menus/registry.py::_build_chat`（`co_argcount=2`、`co_kwonlyargcount=0`，与原版签名一致）。
+
+**踩坑（第一次改失败的原因）**：菜单建造器的 `pet` 参数有两种形态——
+
+- legacy 单窗拓扑：`PetWindow` / `PetInstance`，有 app 注入的 `on_open_quick_chat`
+- overlay 合成窗拓扑（本机就是这个，`PET_RENDER_TOPOLOGY=overlay`）：传进来的是 `SpriteMenuFacade`，**只有 `on_open_chat`**，气泡入口挂在它持有的 `OverlayShell.open_quick_chat(sprite)` 上
+
+第一版只写了 `getattr(pet, 'on_open_quick_chat', None) or pet.on_open_chat`，在 facade 上必然取不到 → 回落到完整窗 → 仍然是「大窗」。现版按鸭子类型三级探测：`on_open_quick_chat` → `pet._shell.open_quick_chat(pet._sprite)` → `open_quick_chat` → `on_open_chat`。
+
+注意 `SpriteMenuFacade.on_open_chat` 是 **property**（返回宿主 callable），不是 method。
+
+### 3. 物理开关（改配置，不动字节码）
 
 `config-slot-0.json`：
 
@@ -64,9 +81,11 @@ def build_animation_categories(menu, pet, *, icons,
 
 | 文件 | 说明 |
 |---|---|
-| `dsh-pet-standalone-webm-chat.exe` | 改好的主程序（16,421,577 字节）。原版是 16,421,283 字节 |
+| `dsh-pet-standalone-webm-chat.exe` | 改好的主程序（16,421,908 字节）。原版是 16,421,283 字节 |
 | `patch/newfn.py` | 新的 `build_animation_categories` 源码 |
-| `patch/repack.py` | 重打包脚本（改写 PYZ + CArchive TOC + cookie） |
+| `patch/newfn_chat.py` | 新的 `_build_chat` 源码（气泡版） |
+| `patch/repack.py` | 重打包脚本（硬编码偏移，针对原版） |
+| `patch/repack_chat.py` | 重打包脚本（**现场解析偏移**，可反复叠加修改） |
 | `patch/dryrun2.py` | 离屏验证菜单树（用真实 group_animation_entries + 真实素材） |
 | `patch/physdemo.py` | 从 exe 提取物理常量并模拟抛掷轨迹 |
 | `patch/dump_orig.py` | 反汇编原版函数（用于还原真实签名） |
