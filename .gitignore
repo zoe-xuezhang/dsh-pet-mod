@@ -1,2 +1,12 @@
 *.exe.orig
 *.orig
+
+# --- 防止误传本机配置与密钥 ---
+# config-slot-0.json 是纯行为配置（物理开关/缩放/位置），可以传；
+# config.json 里存着 provider 凭据引用，绝不能传。
+config.json
+*secret*
+*credential*
+*.key
+*.pem
+sessions/
