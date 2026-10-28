@@ -18,7 +18,7 @@
 |---|---|---|---|
 | ① 原始项目 | `dsh-pet` | [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet) | 蓝色大肥鱼桌宠的最初实现 |
 | ② 跨平台移植版 | `dsh-pet-indesktop` | [MerZlin/dsh-pet-indesktop](https://github.com/MerZlin/dsh-pet-indesktop) | 基于①，把桌宠移植到 Windows / Linux / macOS，并额外实现了大量交互功能 |
-| ③ **本仓库** | 个人配置备份 | 本人（GitHub: 18186878524） | 基于② 的 v4.4.0 打包产物，改了两处菜单、开了两个开关 |
+| ③ **本仓库** | 个人配置备份 | 本人（GitHub: [@zoe-xuezhang](https://github.com/zoe-xuezhang)） | 基于② 的 v4.4.0 打包产物，改了两处菜单、开了两个开关 |
 
 上游②的项目自述（原文）：
 
